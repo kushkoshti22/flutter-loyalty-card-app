@@ -1,6 +1,9 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/loyalty_card.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -8,7 +11,20 @@ class DatabaseService {
 
   factory DatabaseService() => _instance;
 
-  DatabaseService._internal();
+  DatabaseService._internal() {
+    _initDatabaseFactory();
+  }
+
+  Future<void> _initDatabaseFactory() async {
+    if (kIsWeb) {
+      // Initialize for web
+      databaseFactory = databaseFactoryFfiWeb;
+    } else {
+      // Initialize for mobile/desktop
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
